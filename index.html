@@ -303,11 +303,11 @@
         </div>
 
         <div class="form-group">
-            <label>Számhalmazok (szigorú szűrés):</label>
+            <label>Számhalmazok:</label>
             <div class="checkbox-grid">
-                <label><input type="checkbox" id="set-int"> Egész számok</label>
+                <label><input type="checkbox" id="set-int" checked> Egész számok</label>
                 <label><input type="checkbox" id="set-frac" checked> Törtszámok</label>
-                <label><input type="checkbox" id="set-dec"> Tizedes számok</label>
+                <label><input type="checkbox" id="set-dec" checked> Tizedes számok</label>
             </div>
         </div>
 
@@ -415,10 +415,7 @@ function generateTerm(allowedSets) {
     if (allowedSets.frac) validTypes.push('frac');
     if (allowedSets.dec) validTypes.push('dec');
     
-    // Biztosítjuk, hogy ha semmi sincs bepipálva, alapesetben a törteket használja
-    if (validTypes.length === 0) {
-        validTypes.push('frac');
-    }
+    if (validTypes.length === 0) validTypes.push('int');
 
     let chosenType = validTypes[Math.floor(Math.random() * validTypes.length)];
 
@@ -496,7 +493,6 @@ function generateNewSeries() {
                 }
 
                 let stepCount = 1;
-                // 1. Szorzás / Osztás
                 for (let k = 0; k < evalTokens.length; k++) {
                     if (evalTokens[k].op === '·' || evalTokens[k].op === ':') {
                         let lRat = evalTokens[k-1].rat, rRat = evalTokens[k+1].rat;
@@ -513,7 +509,6 @@ function generateNewSeries() {
                     }
                 }
 
-                // 2. Összeadás / Kivonás
                 for (let k = 0; k < evalTokens.length; k++) {
                     if (evalTokens[k].op === '+' || evalTokens[k].op === '-') {
                         let lRat = evalTokens[k-1].rat, rRat = evalTokens[k+1].rat;
@@ -635,7 +630,7 @@ function checkAnswers() {
                 let parts = userVal.split('/');
                 let uNum = parseInt(parts[0]), uDen = parseInt(parts[1]);
                 if (!isNaN(uNum) && !isNaN(uDen) && uDen !== 0 && (uNum/uDen === targetNum)) {
-                    input.title = "Figyelem: Az eredmény számértéke helyes, de kérlek egyszerűsítsd törzsalakra (pl. 24/36 helyett 2/3)!";
+                    input.title = "Figyelem: Az eredmény számértéke helyes, de kérlek egyszerűsítsd törzsalakra!";
                 }
             }
 
