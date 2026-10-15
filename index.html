@@ -271,19 +271,19 @@
 
         <div class="form-group">
             <label for="mode-select">Mód:</label>
-            <select id="mode-select" onchange="toggleTestModeUI()">
+            <select id="mode-select">
                 <option value="practice" selected>Gyakorlás</option>
-                <option value="test">Tesztelés (Mérsékelten osztályozva)</option>
+                <option value="test">Tesztelés (Értékeléssel)</option>
             </select>
         </div>
 
-        <div class="form-group" id="student-name-group">
-            <label for="student-name">Tanuló neve:</label>
-            <input type="text" id="student-name" placeholder="Írd be a neved..."[cite: 1]>
+        <div class="form-group">
+            <label for="student-name">Tanuló neve (opcionális):</label>
+            <input type="text" id="student-name" placeholder="Írd be a neved...">
         </div>
 
         <div class="form-group">
-            <label>Műveletek (választható):</label>
+            <label>Műveletek:</label>
             <div class="checkbox-grid">
                 <label><input type="checkbox" id="op-add" checked> Összeadás (+)</label>
                 <label><input type="checkbox" id="op-sub" checked> Kivonás (-)</label>
@@ -296,18 +296,18 @@
             <label for="terms-select">Tagok száma:</label>
             <select id="terms-select">
                 <option value="2">Kéttagú</option>
-                <option value="3" selected>Háromtagú (zárójellel)</option>
-                <option value="4">Négymagú</option>
+                <option value="3" selected>Háromtagú</option>
+                <option value="4">Négytagú</option>
                 <option value="5">Öttagú</option>
             </select>
         </div>
 
         <div class="form-group">
-            <label>Számhalmazok:</label>
+            <label>Számhalmazok (szigorú szűrés):</label>
             <div class="checkbox-grid">
-                <label><input type="checkbox" id="set-int" checked> Egész számok</label>
+                <label><input type="checkbox" id="set-int"> Egész számok</label>
                 <label><input type="checkbox" id="set-frac" checked> Törtszámok</label>
-                <label><input type="checkbox" id="set-dec" checked> Tizedes számok</label>
+                <label><input type="checkbox" id="set-dec"> Tizedes számok</label>
             </div>
         </div>
 
@@ -323,7 +323,7 @@
 
         <div class="form-group">
             <label class="checkbox-grid" style="grid-template-columns: 1fr;">
-                <label><input type="checkbox" id="show-breakdown" checked> Megoldás levezetése helytelen válasznál</label>
+                <label><input type="checkbox" id="show-breakdown" checked> Megoldás levezetése (magyarázattal)</label>
             </label>
         </div>
 
@@ -334,7 +334,7 @@
         </div>
 
         <button class="btn btn-success" onclick="generateNewSeries()">Feladatok generálása 🔄</button>
-        <button class="btn btn-dark" onclick="window.print()">Nyomtatás / PDF mentés 📄</button>
+        <button class="btn btn-dark" onclick="downloadPDF()">Mentés PDF-be 📥</button>
     </div>
 
     <!-- MAIN CONTENT -->
@@ -389,7 +389,10 @@ class Rational {
         while (d % 5 === 0) d /= 5;
         return d === 1;
     }
-    toDecimalString() { return String(this.num / this.den).replace('.', ','); }
+    toDecimalString() {
+        let val = (this.num / this.den).toFixed(2);
+        return String(parseFloat(val)).replace('.', ',');
+    }
     toFractionString() {
         if (this.den === 1) return `${this.num}`;
         return `${this.num}/${this.den}`;
@@ -398,10 +401,6 @@ class Rational {
         if (this.den === 1) return `${this.num}`;
         return `<span class="frac"><span class="frac-num">${this.num}</span><span class="frac-den">${this.den}</span></span>`;
     }
-}
-
-function toggleTestModeUI() {
-    // Tetszés szerint testre szabható UI váltások
 }
 
 function getRandomInt(min, max) {
@@ -415,15 +414,16 @@ function generateTerm(allowedSets) {
     if (allowedSets.int) validTypes.push('int');
     if (allowedSets.frac) validTypes.push('frac');
     if (allowedSets.dec) validTypes.push('dec');
+    
     if (validTypes.length === 0) validTypes.push('int');
 
     let chosenType = validTypes[Math.floor(Math.random() * validTypes.length)];
 
     if (chosenType === 'int') {
-        let val = getRandomInt(-6, 6);
+        let val = getRandomInt(-8, 8);
         return { rat: new Rational(val, 1), html: val < 0 ? `(${val})` : `${val}`, text: `${val}` };
     } else if (chosenType === 'dec') {
-        let decs = [-1.5, -0.5, 0.5, 1.5, 2, -2, -0.25, 0.25, 0.75];
+        let decs = [-1.5, -0.5, 0.5, 1.5, 2.5, -2, 0.25, -0.75];
         let val = decs[Math.floor(Math.random() * decs.length)];
         let rat = new Rational(Math.round(val * 100), 100);
         let str = rat.toDecimalString();
@@ -441,13 +441,6 @@ function generateTerm(allowedSets) {
 }
 
 function generateNewSeries() {
-    const mode = document.getElementById('mode-select').value;
-    const name = document.getElementById('student-name').value.trim();
-    if (mode === 'practice' && !name) {
-        alert('Kérlek, add meg a neved!');
-        return;
-    }
-
     let activeOps = [];
     if (document.getElementById('op-add').checked) activeOps.push('+');
     if (document.getElementById('op-sub').checked) activeOps.push('-');
@@ -488,60 +481,52 @@ function generateNewSeries() {
                 let exprHtml = "";
                 let finalRat = null;
                 let steps = [];
-                let useBracket = termsCount >= 3 && Math.random() > 0.4;
 
-                if (useBracket && termsCount === 3) {
-                    let op1 = ops[0]; let op2 = ops[1];
-                    let r0 = terms[0].rat, r1 = terms[1].rat, r2 = terms[2].rat;
+                let curRat = terms[0].rat;
+                exprHtml = `${terms[0].html}`;
+                let evalTokens = [{ rat: terms[0].rat, disp: terms[0].html }];
 
-                    let innerRes = op2 === '+' ? r1.add(r2) : op2 === '-' ? r1.sub(r2) : op2 === '·' ? r1.mul(r2) : r1.div(r2);
-                    finalRat = op1 === '+' ? r0.add(innerRes) : op1 === '-' ? r0.sub(innerRes) : op1 === '·' ? r0.mul(innerRes) : r0.div(innerRes);
-
-                    exprHtml = `${terms[0].html} ${op1} (${terms[1].html} ${op2} ${terms[2].html})`;
-                    steps.push(`1. Zárójel feloldása / kiszámítása: ${terms[1].html} ${op2} ${terms[2].html} = <strong>${innerRes.toFractionString()}</strong>`);
-                    steps.push(`2. Maradék művelet elvégzése: ${terms[0].html} ${op1} (${innerRes.toFractionString()})`);
-                } else {
-                    // Egyszerűbb balról jobbra értékelés
-                    let curRat = terms[0].rat;
-                    exprHtml = `${terms[0].html}`;
-                    let evalTokens = [{ rat: terms[0].rat, disp: terms[0].html }];
-
-                    for (let t = 0; t < ops.length; t++) {
-                        evalTokens.push({ op: ops[t], disp: ops[t] });
-                        evalTokens.push({ rat: terms[t+1].rat, disp: terms[t+1].html });
-                        exprHtml += ` ${ops[t]} ${terms[t+1].html}`;
-                    }
-
-                    // Szorzás/osztás előre
-                    let stepCount = 1;
-                    for (let k = 0; k < evalTokens.length; k++) {
-                        if (evalTokens[k].op === '·' || evalTokens[k].op === ':') {
-                            let l = evalTokens[k-1].rat, r = evalTokens[k+1].rat;
-                            let res = evalTokens[k].op === '·' ? l.mul(r) : l.div(r);
-                            steps.push(`${stepCount++}. Műveleti sorrend (szorzás/osztás): ${evalTokens[k-1].disp} ${evalTokens[k].op} ${evalTokens[k+1].disp} = <strong>${res.toFractionString()}</strong>`);
-                            evalTokens.splice(k-1, 3, { rat: res, disp: res.toFractionString() });
-                            k--;
-                        }
-                    }
-                    // Összeadás/kivonás
-                    for (let k = 0; k < evalTokens.length; k++) {
-                        if (evalTokens[k].op === '+' || evalTokens[k].op === '-') {
-                            let l = evalTokens[k-1].rat, r = evalTokens[k+1].rat;
-                            let res = evalTokens[k].op === '+' ? l.add(r) : l.sub(r);
-                            steps.push(`${stepCount++}. Összeadás / kivonás: ${evalTokens[k-1].disp} ${evalTokens[k].op} ${evalTokens[k+1].disp} = <strong>${res.toFractionString()}</strong>`);
-                            evalTokens.splice(k-1, 3, { rat: res, disp: res.toFractionString() });
-                            k--;
-                        }
-                    }
-                    finalRat = evalTokens[0].rat;
+                for (let t = 0; t < ops.length; t++) {
+                    evalTokens.push({ op: ops[t], disp: ops[t] });
+                    evalTokens.push({ rat: terms[t+1].rat, disp: terms[t+1].html });
+                    exprHtml += ` ${ops[t]} ${terms[t+1].html}`;
                 }
 
-                if (Math.abs(finalRat.den) <= 12 && Math.abs(finalRat.num) <= 60) {
+                let stepCount = 1;
+                for (let k = 0; k < evalTokens.length; k++) {
+                    if (evalTokens[k].op === '·' || evalTokens[k].op === ':') {
+                        let l = evalTokens[k-1].rat, r = evalTokens[k+1].rat;
+                        let res = evalTokens[k].op === '·' ? l.mul(r) : l.div(r);
+                        steps.push(`${stepCount++}. Előnyben a szorzás/osztás: ${evalTokens[k-1].disp} ${evalTokens[k].op} ${evalTokens[k+1].disp} = <strong>${res.toFractionString()}</strong> (törzsalakra egyszerűsítve)`);
+                        evalTokens.splice(k-1, 3, { rat: res, disp: res.toFractionString() });
+                        k--;
+                    }
+                }
+
+                for (let k = 0; k < evalTokens.length; k++) {
+                    if (evalTokens[k].op === '+' || evalTokens[k].op === '-') {
+                        let l = evalTokens[k-1].rat, r = evalTokens[k+1].rat;
+                        let op = evalTokens[k].op;
+                        let res = op === '+' ? l.add(r) : l.sub(r);
+                        
+                        let explain = op === '+' 
+                            ? `Összeadjuk az azonos előjelű számokat, vagy ellentétes előjelnél a különbséget nézzük (pl. -23 + 18 = -5 szabályhoz hasonlóan, közös nevezőre hozva).` 
+                            : `Kivonás elvégzése (ellentétes előjelek összegeként vagy különbségként értelmezve).`;
+                        
+                        steps.push(`${stepCount++}. ${explain} ${evalTokens[k-1].disp} ${op} ${evalTokens[k+1].disp} = <strong>${res.toFractionString()}</strong>`);
+                        
+                        evalTokens.splice(k-1, 3, { rat: res, disp: res.toFractionString() });
+                        k--;
+                    }
+                }
+                finalRat = evalTokens[0].rat;
+
+                if (Math.abs(finalRat.den) <= 12 && Math.abs(finalRat.num) <= 50) {
                     let allowed = [finalRat.toFractionString()];
                     if (finalRat.den === 1) allowed.push(`${finalRat.num}`);
                     if (finalRat.isTerminatingDecimal()) allowed.push(finalRat.toDecimalString());
 
-                    steps.push(`Végeredmény: <strong>${allowed.join(' vagy ')}</strong>`);
+                    steps.push(`Végeredmény (pontos törzsalakban vagy max 2 tizedesjegyű tizedestörtként): <strong>${allowed.join(' vagy ')}</strong>`);
 
                     generatedTasks.push({
                         expression: exprHtml,
@@ -569,7 +554,7 @@ function renderTasks() {
         const card = document.createElement('div');
         card.className = 'task-card';
 
-        let stepsHtml = task.breakdown.map(s => `<div style="padding-left:10px; border-left:2px solid #E6B0AA;">${s}</div>`).join('');
+        let stepsHtml = task.breakdown.map(s => `<div style="padding-left:10px; border-left:2px solid #E6B0AA; margin: 3px 0;">${s}</div>`).join('');
 
         card.innerHTML = `
             <div class="task-main-row">
@@ -595,6 +580,11 @@ function renderAnswerKeyForPrint() {
     generatedTasks.forEach((task, idx) => {
         container.innerHTML += `<div><strong>${idx + 1}.</strong> ${task.expression} = <strong>${task.allowedAnswers[0]}</strong></div>`;
     });
+}
+
+function downloadPDF() {
+    // A böngésző beépített PDF-mentő funkciójának közvetlen meghívása
+    window.print();
 }
 
 function checkAnswers() {
@@ -626,6 +616,15 @@ function checkAnswers() {
         } else {
             input.style.borderColor = 'var(--danger)';
             input.style.backgroundColor = '#FDEDEC';
+            
+            if (userVal.includes('/')) {
+                let parts = userVal.split('/');
+                let uNum = parseInt(parts[0]), uDen = parseInt(parts[1]);
+                if (!isNaN(uNum) && !isNaN(uDen) && uDen !== 0 && (uNum/uDen === targetNum)) {
+                    input.title = "Figyelem: Az eredmény helyes, de kérlek egyszerűsítsd törzsalakra!";
+                }
+            }
+
             if (breakdownBox && showBreakdown) breakdownBox.style.display = 'flex';
         }
     });
@@ -637,7 +636,7 @@ function checkAnswers() {
     let gradeText = "";
     if (mode === 'test') {
         if (percent >= 90) gradeText = "Kitűnő (5)";
-        else if (percent >= 75) gradeText = "Dicséretes / Jó (4)";
+        else if (percent >= 75) gradeText = "Dicséretes (4)";
         else if (percent >= 51) gradeText = "Közepes (3)";
         else if (percent >= 30) gradeText = "Elégséges (2)";
         else gradeText = "Elégtelen (1)";
