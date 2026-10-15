@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Műveletek előjeles számokkal - 13-14 éveseknek</title>
+    <title>Műveletek előjeles számokkal</title>
     <style>
         :root {
             --primary: #2C3E50;
@@ -267,7 +267,7 @@
 
     <!-- SIDEBAR -->
     <div class="sidebar">
-        <h2>⚙️ Beállítások (13-14 év)</h2>
+        <h2>⚙️ Beállítások</h2>
 
         <div class="form-group">
             <label for="mode-select">Mód:</label>
@@ -415,7 +415,10 @@ function generateTerm(allowedSets) {
     if (allowedSets.frac) validTypes.push('frac');
     if (allowedSets.dec) validTypes.push('dec');
     
-    if (validTypes.length === 0) validTypes.push('int');
+    // Biztosítjuk, hogy ha semmi sincs bepipálva, alapesetben a törteket használja
+    if (validTypes.length === 0) {
+        validTypes.push('frac');
+    }
 
     let chosenType = validTypes[Math.floor(Math.random() * validTypes.length)];
 
@@ -489,7 +492,7 @@ function generateNewSeries() {
                 for (let t = 0; t < ops.length; t++) {
                     evalTokens.push({ op: ops[t], disp: ops[t] });
                     evalTokens.push({ rat: terms[t+1].rat, disp: terms[t+1].html, obj: terms[t+1] });
-                    exprHtml += ` ${ops[t]}${terms[t+1].html}`;
+                    exprHtml += ` ${ops[t]} ${terms[t+1].html}`;
                 }
 
                 let stepCount = 1;
@@ -500,7 +503,170 @@ function generateNewSeries() {
                         let res = evalTokens[k].op === '·' ? lRat.mul(rRat) : lRat.div(rRat);
                         
                         let calcDetail = evalTokens[k].op === '·' 
-                            ? `(${lRat.num} ·${rRat.num}) / (${lRat.den} ·${rRat.den})`
-                            : `(${lRat.num} ·${rRat.den}) / (${lRat.den} ·${rRat.num}) (reciprokkal szorozva)`;
+                            ? `(${lRat.num} · ${rRat.num}) / (${lRat.den} · ${rRat.den})`
+                            : `(${lRat.num} · ${rRat.den}) / (${lRat.den} · ${rRat.num}) (reciprokkal szorozva)`;
 
-                        steps.push(`${stepCount++}. Előnyben a szorzás/osztás: ${evalTokens[k-1].disp} ${evalTokens[k].op}${evalTokens[k+1].disp} = ${calcDetail} = <strong>${res.toFractionString()}</strong> (törz
+                        steps.push(`${stepCount++}. Előnyben a szorzás/osztás: ${evalTokens[k-1].disp} ${evalTokens[k].op} ${evalTokens[k+1].disp} = ${calcDetail} = <strong>${res.toFractionString()}</strong> (törzsalakra egyszerűsítve)`);
+                        
+                        evalTokens.splice(k-1, 3, { rat: res, disp: res.toFractionString() });
+                        k--;
+                    }
+                }
+
+                // 2. Összeadás / Kivonás
+                for (let k = 0; k < evalTokens.length; k++) {
+                    if (evalTokens[k].op === '+' || evalTokens[k].op === '-') {
+                        let lRat = evalTokens[k-1].rat, rRat = evalTokens[k+1].rat;
+                        let op = evalTokens[k].op;
+                        let res = op === '+' ? lRat.add(rRat) : lRat.sub(rRat);
+                        
+                        let calcDetail = `(${lRat.num * rRat.den} ${op} ${rRat.num * lRat.den}) / ${lRat.den * rRat.den}`;
+                        let explain = op === '+' 
+                            ? `Összeadjuk a közös nevezőre hozott tagokat: ${calcDetail}` 
+                            : `Kivonás közös nevezővel (ellentétes előjelnél különbséget nézve): ${calcDetail}`;
+                        
+                        steps.push(`${stepCount++}. ${explain} = <strong>${res.toFractionString()}</strong>`);
+                        
+                        evalTokens.splice(k-1, 3, { rat: res, disp: res.toFractionString() });
+                        k--;
+                    }
+                }
+                finalRat = evalTokens[0].rat;
+
+                if (Math.abs(finalRat.den) <= 12 && Math.abs(finalRat.num) <= 50) {
+                    let allowedSet = new Set();
+                    allowedSet.add(finalRat.toFractionString());
+                    if (finalRat.den === 1) allowedSet.add(`${finalRat.num}`);
+                    if (finalRat.isTerminatingDecimal()) allowedSet.add(finalRat.toDecimalString());
+                    
+                    let allowed = Array.from(allowedSet);
+
+                    steps.push(`Végeredmény (pontos törzsalakban): <strong>${allowed.join(' vagy ')}</strong>`);
+
+                    generatedTasks.push({
+                        expression: exprHtml,
+                        finalRat: finalRat,
+                        allowedAnswers: allowed,
+                        breakdown: steps
+                    });
+                    success = true;
+                }
+            } catch(e) {}
+        }
+    }
+
+    renderTasks();
+    renderAnswerKeyForPrint();
+}
+
+function renderTasks() {
+    const wrapper = document.getElementById('tasks-wrapper');
+    wrapper.innerHTML = '';
+    const name = document.getElementById('student-name').value.trim();
+    document.getElementById('display-student-info').innerText = name ? `Tanuló: ${name}` : '';
+
+    generatedTasks.forEach((task, idx) => {
+        const card = document.createElement('div');
+        card.className = 'task-card';
+
+        let stepsHtml = task.breakdown.map(s => `<div style="padding-left:10px; border-left:2px solid #E6B0AA; margin: 3px 0;">${s}</div>`).join('');
+
+        card.innerHTML = `
+            <div class="task-main-row">
+                <span><strong>${idx + 1}.</strong> &nbsp; ${task.expression} = <span class="print-answer-line"></span></span>
+                <input type="text" class="math-input" id="ans-${idx}" placeholder="eredmény">
+            </div>
+            <div class="solution-breakdown" id="breakdown-${idx}">
+                <strong>Részletes levezetés:</strong>
+                ${stepsHtml}
+            </div>
+        `;
+        wrapper.appendChild(card);
+    });
+}
+
+function renderAnswerKeyForPrint() {
+    const includeKey = document.getElementById('include-pdf-key').checked;
+    const container = document.getElementById('print-key-content');
+    container.innerHTML = '';
+
+    if (!includeKey) return;
+
+    generatedTasks.forEach((task, idx) => {
+        container.innerHTML += `<div><strong>${idx + 1}.</strong> ${task.expression} = <strong>${task.allowedAnswers[0]}</strong></div>`;
+    });
+}
+
+function downloadPDF() {
+    window.print();
+}
+
+function checkAnswers() {
+    const mode = document.getElementById('mode-select').value;
+    const showBreakdown = document.getElementById('show-breakdown').checked;
+    let correct = 0;
+
+    generatedTasks.forEach((task, idx) => {
+        const input = document.getElementById(`ans-${idx}`);
+        const breakdownBox = document.getElementById(`breakdown-${idx}`);
+        if (!input) return;
+
+        let userVal = input.value.trim().toLowerCase().replace(/\s+/g, '');
+        let isCorrect = false;
+
+        task.allowedAnswers.forEach(ans => {
+            if (userVal === ans.toLowerCase()) isCorrect = true;
+        });
+
+        let numUser = parseFloat(userVal.replace(',', '.'));
+        let targetNum = task.finalRat.num / task.finalRat.den;
+        if (!isNaN(numUser) && Math.abs(numUser - targetNum) < 0.001) isCorrect = true;
+
+        if (isCorrect) {
+            correct++;
+            input.style.borderColor = 'var(--success)';
+            input.style.backgroundColor = '#E8F8F5';
+            if (breakdownBox) breakdownBox.style.display = 'none';
+        } else {
+            input.style.borderColor = 'var(--danger)';
+            input.style.backgroundColor = '#FDEDEC';
+            
+            if (userVal.includes('/')) {
+                let parts = userVal.split('/');
+                let uNum = parseInt(parts[0]), uDen = parseInt(parts[1]);
+                if (!isNaN(uNum) && !isNaN(uDen) && uDen !== 0 && (uNum/uDen === targetNum)) {
+                    input.title = "Figyelem: Az eredmény számértéke helyes, de kérlek egyszerűsítsd törzsalakra (pl. 24/36 helyett 2/3)!";
+                }
+            }
+
+            if (breakdownBox && showBreakdown) breakdownBox.style.display = 'flex';
+        }
+    });
+
+    const total = generatedTasks.length;
+    const percent = Math.round((correct / total) * 100);
+    const banner = document.getElementById('summary-banner');
+    
+    let gradeText = "";
+    if (mode === 'test') {
+        if (percent >= 90) gradeText = "1 – Kitűnő (Výborný)";
+        else if (percent >= 75) gradeText = "2 – Dicséretes (Chválitebný)";
+        else if (percent >= 51) gradeText = "3 – Jó (Dobrý)";
+        else if (percent >= 30) gradeText = "4 – Elégséges (Dostatočný)";
+        else gradeText = "5 – Elégtelen (Nedostatočný)";
+    }
+
+    document.getElementById('summary-title').innerText = `Értékelés - ${document.getElementById('student-name').value || 'Tanuló'}`;
+    document.getElementById('summary-details').innerHTML = `<span>Pontszám: ${correct} / ${total}</span><span>Százalék: ${percent}%</span>` + (mode === 'test' ? `<span>Osztályzat: <strong>${gradeText}</strong></span>` : '');
+    
+    let feedback = percent === 100 ? "Kiváló teljesítmény! 🌟" : "Nézd át a levezetéseket a hibás feladatoknál!";
+    document.getElementById('summary-feedback').innerText = feedback;
+    banner.style.display = 'flex';
+}
+
+window.onload = () => {
+    generateNewSeries();
+};
+</script>
+</body>
+</html>
