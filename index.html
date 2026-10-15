@@ -17,3 +17,643 @@
         }
 
         * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Oldalsáv / Beállítások */
+        .sidebar {
+            width: 390px;
+            background: var(--panel-bg);
+            border-right: 1px solid var(--border);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.05);
+            flex-shrink: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            font-size: 1.05rem;
+            color: var(--primary);
+            margin: 0;
+            border-bottom: 2px solid var(--secondary);
+            padding-bottom: 4px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 0.82rem;
+        }
+
+        select, input[type="text"] {
+            padding: 6px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            font-size: 0.88rem;
+            width: 100%;
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+
+        .checkbox-grid label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 8px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .btn:hover { opacity: 0.9; }
+        .btn-success { background: var(--success); }
+        .btn-danger { background: var(--danger); }
+        .btn-dark { background: var(--primary); }
+
+        /* Fő tartalom */
+        .main-content {
+            flex-grow: 1;
+            padding: 20px 30px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+        }
+
+        .app-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        /* Összegző Banner */
+        .summary-banner {
+            background: #EBF5FB;
+            border: 2px solid var(--secondary);
+            border-radius: 8px;
+            padding: 12px 18px;
+            margin-bottom: 15px;
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .summary-banner h3 {
+            margin: 0;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+
+        /* Feladatok */
+        .tasks-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            max-width: 850px;
+            margin-bottom: 20px;
+        }
+
+        .task-card {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .task-main-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 1.05rem;
+        }
+
+        /* Tört megjelenítés */
+        .frac {
+            display: inline-flex;
+            flex-direction: column;
+            vertical-align: middle;
+            text-align: center;
+            font-size: 0.9em;
+            padding: 0 2px;
+        }
+        .frac > span {
+            display: block;
+            padding: 0 3px;
+        }
+        .frac-num {
+            border-bottom: 1px solid currentColor;
+        }
+        .frac-den {
+            padding-top: 1px;
+        }
+
+        .math-input {
+            width: 150px !important;
+            text-align: center;
+            font-size: 0.95rem;
+            font-weight: bold;
+            border: 2px solid var(--secondary);
+            border-radius: 4px;
+            background: #F4F6F7;
+        }
+
+        .solution-breakdown {
+            background-color: #FDEDEC;
+            border-left: 4px solid var(--danger);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.88rem;
+            color: #78281F;
+            display: none;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        /* Nyomtatási stílusok (PDF) */
+        @media print {
+            .sidebar, .header-bar button, .summary-banner, #submit-container, .solution-breakdown, .math-input {
+                display: none !important;
+            }
+            body {
+                height: auto;
+                background: white;
+            }
+            .main-content {
+                padding: 0;
+                overflow: visible;
+            }
+            .task-card {
+                border: none;
+                border-bottom: 1px dashed #bbb;
+                box-shadow: none;
+                padding: 10px 0;
+            }
+            .print-answer-line {
+                display: inline-block !important;
+                border-bottom: 1px solid #000;
+                width: 120px;
+                margin-left: 10px;
+            }
+            .print-answer-key-section {
+                display: block !important;
+                margin-top: 30px;
+                page-break-before: always;
+            }
+        }
+
+        .print-answer-line {
+            display: none;
+        }
+
+        .print-answer-key-section {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <h2>⚙️ Beállítások (13-14 év)</h2>
+
+        <div class="form-group">
+            <label for="mode-select">Mód:</label>
+            <select id="mode-select" onchange="toggleTestModeUI()">
+                <option value="practice" selected>Gyakorlás</option>
+                <option value="test">Tesztelés (Mérsékelten osztályozva)</option>
+            </select>
+        </div>
+
+        <div class="form-group" id="student-name-group">
+            <label for="student-name">Tanuló neve:</label>
+            <input type="text" id="student-name" placeholder="Írd be a neved..."[cite: 1]>
+        </div>
+
+        <div class="form-group">
+            <label>Műveletek (választható):</label>
+            <div class="checkbox-grid">
+                <label><input type="checkbox" id="op-add" checked> Összeadás (+)</label>
+                <label><input type="checkbox" id="op-sub" checked> Kivonás (-)</label>
+                <label><input type="checkbox" id="op-mul" checked> Szorzás (·)</label>
+                <label><input type="checkbox" id="op-div" checked> Osztás (:)</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="terms-select">Tagok száma:</label>
+            <select id="terms-select">
+                <option value="2">Kéttagú</option>
+                <option value="3" selected>Háromtagú (zárójellel)</option>
+                <option value="4">Négymagú</option>
+                <option value="5">Öttagú</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Számhalmazok:</label>
+            <div class="checkbox-grid">
+                <label><input type="checkbox" id="set-int" checked> Egész számok</label>
+                <label><input type="checkbox" id="set-frac" checked> Törtszámok</label>
+                <label><input type="checkbox" id="set-dec" checked> Tizedes számok</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="count-select">Feladatok száma:</label>
+            <select id="count-select">
+                <option value="1">1 db</option>
+                <option value="3">3 db</option>
+                <option value="5" selected>5 db</option>
+                <option value="8">8 db</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="checkbox-grid" style="grid-template-columns: 1fr;">
+                <label><input type="checkbox" id="show-breakdown" checked> Megoldás levezetése helytelen válasznál</label>
+            </label>
+        </div>
+
+        <div class="form-group">
+            <label class="checkbox-grid" style="grid-template-columns: 1fr;">
+                <label><input type="checkbox" id="include-pdf-key" checked> Megoldókulcs csatolása PDF-be</label>
+            </label>
+        </div>
+
+        <button class="btn btn-success" onclick="generateNewSeries()">Feladatok generálása 🔄</button>
+        <button class="btn btn-dark" onclick="window.print()">Nyomtatás / PDF mentés 📄</button>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="header-bar">
+            <div class="app-title">Műveletek előjeles számokkal</div>
+            <div id="display-student-info" style="font-weight: bold; font-size: 1.05rem;"></div>
+        </div>
+
+        <div id="summary-banner" class="summary-banner">
+            <h3 id="summary-title">Értékelés</h3>
+            <div id="summary-details" style="font-weight: 600; display: flex; gap: 20px;"></div>
+            <div id="summary-feedback" style="font-style: italic; color: #34495E;"></div>
+        </div>
+
+        <div id="tasks-wrapper" class="tasks-container"></div>
+
+        <div id="print-key-container" class="print-answer-key-section">
+            <h3>Megoldókulcs (PDF melléklet)</h3>
+            <div id="print-key-content"></div>
+        </div>
+
+        <div id="submit-container" style="margin-top: 5px;">
+            <button class="btn btn-success" style="font-size: 1.05rem; padding: 10px 20px;" onclick="checkAnswers()">Válaszok ellenőrzése ✨</button>
+        </div>
+    </div>
+
+<script>
+let generatedTasks = [];
+
+function gcd(a, b) {
+    a = Math.abs(a); b = Math.abs(b);
+    while (b) { let t = b; b = a % b; a = t; }
+    return a;
+}
+
+class Rational {
+    constructor(num, den = 1) {
+        if (den === 0) throw new Error("0-val osztás");
+        if (den < 0) { num = -num; den = -den; }
+        let g = gcd(num, den);
+        this.num = num / g; this.den = den / g;
+    }
+    add(o) { return new Rational(this.num * o.den + o.num * this.den, this.den * o.den); }
+    sub(o) { return new Rational(this.num * o.den - o.num * this.den, this.den * o.den); }
+    mul(o) { return new Rational(this.num * o.num, this.den * o.den); }
+    div(o) { return new Rational(this.num * o.den, this.den * o.num); }
+
+    isTerminatingDecimal() {
+        let d = this.den;
+        while (d % 2 === 0) d /= 2;
+        while (d % 5 === 0) d /= 5;
+        return d === 1;
+    }
+    toDecimalString() { return String(this.num / this.den).replace('.', ','); }
+    toFractionString() {
+        if (this.den === 1) return `${this.num}`;
+        return `${this.num}/${this.den}`;
+    }
+    toHtmlFraction() {
+        if (this.den === 1) return `${this.num}`;
+        return `<span class="frac"><span class="frac-num">${this.num}</span><span class="frac-den">${this.den}</span></span>`;
+    }
+}
+
+function toggleTestModeUI() {
+    // Tetszés szerint testre szabható UI váltások
+}
+
+function getRandomInt(min, max) {
+    let n = 0;
+    while (n === 0) { n = Math.floor(Math.random() * (max - min + 1)) + min; }
+    return n;
+}
+
+function generateTerm(allowedSets) {
+    let validTypes = [];
+    if (allowedSets.int) validTypes.push('int');
+    if (allowedSets.frac) validTypes.push('frac');
+    if (allowedSets.dec) validTypes.push('dec');
+    if (validTypes.length === 0) validTypes.push('int');
+
+    let chosenType = validTypes[Math.floor(Math.random() * validTypes.length)];
+
+    if (chosenType === 'int') {
+        let val = getRandomInt(-6, 6);
+        return { rat: new Rational(val, 1), html: val < 0 ? `(${val})` : `${val}`, text: `${val}` };
+    } else if (chosenType === 'dec') {
+        let decs = [-1.5, -0.5, 0.5, 1.5, 2, -2, -0.25, 0.25, 0.75];
+        let val = decs[Math.floor(Math.random() * decs.length)];
+        let rat = new Rational(Math.round(val * 100), 100);
+        let str = rat.toDecimalString();
+        let display = val < 0 ? `(${str})` : str;
+        return { rat: rat, html: display, text: str };
+    } else {
+        let dens = [2, 3, 4];
+        let den = dens[Math.floor(Math.random() * dens.length)];
+        let num = getRandomInt(-5, 5);
+        let rat = new Rational(num, den);
+        let htmlFrac = rat.toHtmlFraction();
+        let display = rat.num < 0 ? `(${htmlFrac})` : htmlFrac;
+        return { rat: rat, html: display, text: rat.toFractionString() };
+    }
+}
+
+function generateNewSeries() {
+    const mode = document.getElementById('mode-select').value;
+    const name = document.getElementById('student-name').value.trim();
+    if (mode === 'practice' && !name) {
+        alert('Kérlek, add meg a neved!');
+        return;
+    }
+
+    let activeOps = [];
+    if (document.getElementById('op-add').checked) activeOps.push('+');
+    if (document.getElementById('op-sub').checked) activeOps.push('-');
+    if (document.getElementById('op-mul').checked) activeOps.push('·');
+    if (document.getElementById('op-div').checked) activeOps.push(':');
+
+    if (activeOps.length === 0) {
+        alert('Válassz ki legalább egy műveletet!');
+        return;
+    }
+
+    let allowedSets = {
+        int: document.getElementById('set-int').checked,
+        frac: document.getElementById('set-frac').checked,
+        dec: document.getElementById('set-dec').checked
+    };
+
+    const count = parseInt(document.getElementById('count-select').value);
+    const termsCount = parseInt(document.getElementById('terms-select').value);
+
+    generatedTasks = [];
+    document.getElementById('summary-banner').style.display = 'none';
+
+    for (let i = 0; i < count; i++) {
+        let attempts = 0;
+        let success = false;
+        while (attempts < 200 && !success) {
+            attempts++;
+            try {
+                let terms = [];
+                for (let t = 0; t < termsCount; t++) { terms.push(generateTerm(allowedSets)); }
+
+                let ops = [];
+                for (let t = 0; t < termsCount - 1; t++) {
+                    ops.push(activeOps[Math.floor(Math.random() * activeOps.length)]);
+                }
+
+                let exprHtml = "";
+                let finalRat = null;
+                let steps = [];
+                let useBracket = termsCount >= 3 && Math.random() > 0.4;
+
+                if (useBracket && termsCount === 3) {
+                    let op1 = ops[0]; let op2 = ops[1];
+                    let r0 = terms[0].rat, r1 = terms[1].rat, r2 = terms[2].rat;
+
+                    let innerRes = op2 === '+' ? r1.add(r2) : op2 === '-' ? r1.sub(r2) : op2 === '·' ? r1.mul(r2) : r1.div(r2);
+                    finalRat = op1 === '+' ? r0.add(innerRes) : op1 === '-' ? r0.sub(innerRes) : op1 === '·' ? r0.mul(innerRes) : r0.div(innerRes);
+
+                    exprHtml = `${terms[0].html} ${op1} (${terms[1].html} ${op2} ${terms[2].html})`;
+                    steps.push(`1. Zárójel feloldása / kiszámítása: ${terms[1].html} ${op2} ${terms[2].html} = <strong>${innerRes.toFractionString()}</strong>`);
+                    steps.push(`2. Maradék művelet elvégzése: ${terms[0].html} ${op1} (${innerRes.toFractionString()})`);
+                } else {
+                    // Egyszerűbb balról jobbra értékelés
+                    let curRat = terms[0].rat;
+                    exprHtml = `${terms[0].html}`;
+                    let evalTokens = [{ rat: terms[0].rat, disp: terms[0].html }];
+
+                    for (let t = 0; t < ops.length; t++) {
+                        evalTokens.push({ op: ops[t], disp: ops[t] });
+                        evalTokens.push({ rat: terms[t+1].rat, disp: terms[t+1].html });
+                        exprHtml += ` ${ops[t]} ${terms[t+1].html}`;
+                    }
+
+                    // Szorzás/osztás előre
+                    let stepCount = 1;
+                    for (let k = 0; k < evalTokens.length; k++) {
+                        if (evalTokens[k].op === '·' || evalTokens[k].op === ':') {
+                            let l = evalTokens[k-1].rat, r = evalTokens[k+1].rat;
+                            let res = evalTokens[k].op === '·' ? l.mul(r) : l.div(r);
+                            steps.push(`${stepCount++}. Műveleti sorrend (szorzás/osztás): ${evalTokens[k-1].disp} ${evalTokens[k].op} ${evalTokens[k+1].disp} = <strong>${res.toFractionString()}</strong>`);
+                            evalTokens.splice(k-1, 3, { rat: res, disp: res.toFractionString() });
+                            k--;
+                        }
+                    }
+                    // Összeadás/kivonás
+                    for (let k = 0; k < evalTokens.length; k++) {
+                        if (evalTokens[k].op === '+' || evalTokens[k].op === '-') {
+                            let l = evalTokens[k-1].rat, r = evalTokens[k+1].rat;
+                            let res = evalTokens[k].op === '+' ? l.add(r) : l.sub(r);
+                            steps.push(`${stepCount++}. Összeadás / kivonás: ${evalTokens[k-1].disp} ${evalTokens[k].op} ${evalTokens[k+1].disp} = <strong>${res.toFractionString()}</strong>`);
+                            evalTokens.splice(k-1, 3, { rat: res, disp: res.toFractionString() });
+                            k--;
+                        }
+                    }
+                    finalRat = evalTokens[0].rat;
+                }
+
+                if (Math.abs(finalRat.den) <= 12 && Math.abs(finalRat.num) <= 60) {
+                    let allowed = [finalRat.toFractionString()];
+                    if (finalRat.den === 1) allowed.push(`${finalRat.num}`);
+                    if (finalRat.isTerminatingDecimal()) allowed.push(finalRat.toDecimalString());
+
+                    steps.push(`Végeredmény: <strong>${allowed.join(' vagy ')}</strong>`);
+
+                    generatedTasks.push({
+                        expression: exprHtml,
+                        finalRat: finalRat,
+                        allowedAnswers: allowed,
+                        breakdown: steps
+                    });
+                    success = true;
+                }
+            } catch(e) {}
+        }
+    }
+
+    renderTasks();
+    renderAnswerKeyForPrint();
+}
+
+function renderTasks() {
+    const wrapper = document.getElementById('tasks-wrapper');
+    wrapper.innerHTML = '';
+    const name = document.getElementById('student-name').value.trim();
+    document.getElementById('display-student-info').innerText = name ? `Tanuló: ${name}` : '';
+
+    generatedTasks.forEach((task, idx) => {
+        const card = document.createElement('div');
+        card.className = 'task-card';
+
+        let stepsHtml = task.breakdown.map(s => `<div style="padding-left:10px; border-left:2px solid #E6B0AA;">${s}</div>`).join('');
+
+        card.innerHTML = `
+            <div class="task-main-row">
+                <span><strong>${idx + 1}.</strong> &nbsp; ${task.expression} = <span class="print-answer-line"></span></span>
+                <input type="text" class="math-input" id="ans-${idx}" placeholder="eredmény">
+            </div>
+            <div class="solution-breakdown" id="breakdown-${idx}">
+                <strong>Részletes levezetés:</strong>
+                ${stepsHtml}
+            </div>
+        `;
+        wrapper.appendChild(card);
+    });
+}
+
+function renderAnswerKeyForPrint() {
+    const includeKey = document.getElementById('include-pdf-key').checked;
+    const container = document.getElementById('print-key-content');
+    container.innerHTML = '';
+
+    if (!includeKey) return;
+
+    generatedTasks.forEach((task, idx) => {
+        container.innerHTML += `<div><strong>${idx + 1}.</strong> ${task.expression} = <strong>${task.allowedAnswers[0]}</strong></div>`;
+    });
+}
+
+function checkAnswers() {
+    const mode = document.getElementById('mode-select').value;
+    const showBreakdown = document.getElementById('show-breakdown').checked;
+    let correct = 0;
+
+    generatedTasks.forEach((task, idx) => {
+        const input = document.getElementById(`ans-${idx}`);
+        const breakdownBox = document.getElementById(`breakdown-${idx}`);
+        if (!input) return;
+
+        let userVal = input.value.trim().toLowerCase().replace(/\s+/g, '');
+        let isCorrect = false;
+
+        task.allowedAnswers.forEach(ans => {
+            if (userVal === ans.toLowerCase()) isCorrect = true;
+        });
+
+        let numUser = parseFloat(userVal.replace(',', '.'));
+        let targetNum = task.finalRat.num / task.finalRat.den;
+        if (!isNaN(numUser) && Math.abs(numUser - targetNum) < 0.001) isCorrect = true;
+
+        if (isCorrect) {
+            correct++;
+            input.style.borderColor = 'var(--success)';
+            input.style.backgroundColor = '#E8F8F5';
+            if (breakdownBox) breakdownBox.style.display = 'none';
+        } else {
+            input.style.borderColor = 'var(--danger)';
+            input.style.backgroundColor = '#FDEDEC';
+            if (breakdownBox && showBreakdown) breakdownBox.style.display = 'flex';
+        }
+    });
+
+    const total = generatedTasks.length;
+    const percent = Math.round((correct / total) * 100);
+    const banner = document.getElementById('summary-banner');
+    
+    let gradeText = "";
+    if (mode === 'test') {
+        if (percent >= 90) gradeText = "Kitűnő (5)";
+        else if (percent >= 75) gradeText = "Dicséretes / Jó (4)";
+        else if (percent >= 51) gradeText = "Közepes (3)";
+        else if (percent >= 30) gradeText = "Elégséges (2)";
+        else gradeText = "Elégtelen (1)";
+    }
+
+    document.getElementById('summary-title').innerText = `Értékelés - ${document.getElementById('student-name').value || 'Tanuló'}`;
+    document.getElementById('summary-details').innerHTML = `<span>Pontszám: ${correct} / ${total}</span><span>Százalék: ${percent}%</span>` + (mode === 'test' ? `<span>Osztályzat: <strong>${gradeText}</strong></span>` : '');
+    
+    let feedback = percent === 100 ? "Kiváló teljesítmény! 🌟" : "Nézd át a levezetéseket a hibás feladatoknál!";
+    document.getElementById('summary-feedback').innerText = feedback;
+    banner.style.display = 'flex';
+}
+
+window.onload = () => {
+    generateNewSeries();
+};
+</script>
+</body>
+</html>
